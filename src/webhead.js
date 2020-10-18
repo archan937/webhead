@@ -8,14 +8,14 @@ const { CookieJar } = toughCookie;
 const { curly } = nodeLibcurl;
 
 const Webhead = (opts) => {
-  const { verbose, jarFile } = opts || {};
+  const { jarFile, userAgent, verbose } = opts || {};
 
   let
     cookieJar,
     state = {},
 
     request = async (method, url, options) => {
-      method = method.toLowerCase();
+      method = method.toUpperCase();
       url = toURL(url);
       options = options || {};
 
@@ -36,13 +36,13 @@ const Webhead = (opts) => {
     curl = async (method, url, options) => {
       const
         cookieUrl = toCookieUrl(url),
-        opts = toCurlOpts(url, options);
+        { curl, opts } = toCurlArgs(method, url, options);
 
       if (verbose) {
-        console.debug(method.toUpperCase(), url.href, opts);
+        console.debug(method, curl, opts);
       }
 
-      const response = await curly[method](url.href, opts);
+      const response = await curly[method.toLowerCase()](curl, opts);
       let redirect;
 
       response.headers = toHeaders(response.headers[0]);
@@ -103,7 +103,9 @@ const Webhead = (opts) => {
       }
     },
 
-    toCurlOpts = (url, { headers, formData }) => {
+    toCurlArgs = (method, url, { headers, formData }) => {
+      let curl = url.href;
+
       const
         opts = {},
         cookie = getCookie(url);
@@ -115,15 +117,19 @@ const Webhead = (opts) => {
         headers['Cookie'] = cookie;
       }
 
-      opts.httpHeader = Object.entries(headers).map(
-        header => header.join(': ')
-      );
+      if (!headers['User-Agent'] && userAgent) {
+        headers['User-Agent'] = userAgent;
+      }
 
       if (formData) {
         opts.postFields = querystring.stringify(formData);
       }
 
-      return opts;
+      opts.httpHeader = Object.entries(headers).map(
+        header => header.join(': ')
+      );
+
+      return { curl, opts };
     },
 
     loadjQuery = ({ statusCode, headers, data }) => {
