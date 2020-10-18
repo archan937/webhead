@@ -156,7 +156,7 @@ const Webhead = (opts) => {
     state[method] = async (...args) => await request(method, ...args);
   });
 
-  state.submit = async (selector, data) => {
+  state.submit = async (selector, data, options) => {
     const form = state.$(selector);
     if (form.length) {
       const
@@ -176,7 +176,7 @@ const Webhead = (opts) => {
       return await request(
         method,
         url,
-        { formData }
+        { ...options, formData }
       );
     }
   };
