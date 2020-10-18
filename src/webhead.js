@@ -122,7 +122,15 @@ const Webhead = (opts) => {
       }
 
       if (formData) {
-        opts.postFields = querystring.stringify(formData);
+        formData = querystring.stringify(formData);
+        if (method == 'GET') {
+          curl += (curl.match(/\?/) ? '&' : '?') + formData;
+        } else {
+          opts.postFields = formData;
+        }
+        if (!headers['Content-Type']) {
+          headers['Content-Type'] = 'application/x-www-form-urlencoded';
+        }
       }
 
       opts.httpHeader = Object.entries(headers).map(
@@ -153,7 +161,7 @@ const Webhead = (opts) => {
     if (form.length) {
       const
         url = form.attr('action'),
-        method = form.attr('method') || 'POST',
+        method = form.attr('method') || 'GET',
         formData = Object.assign(
           form.serializeArray().reduce(
             (formData, { name, value }) => {
