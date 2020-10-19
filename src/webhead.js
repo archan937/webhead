@@ -186,7 +186,7 @@ const Webhead = (opts) => {
   };
 
   state.json = () => {
-    if (state.response.data) {
+    if (state.response.data && state.response.headers['Content-Type'].toString().match('json')) {
       return JSON.parse(state.response.data);
     }
   };
