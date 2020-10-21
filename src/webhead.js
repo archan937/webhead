@@ -12,7 +12,7 @@ const Webhead = (opts) => {
 
   let
     cookieJar,
-    state = {},
+    webhead = {},
 
     request = async (method, url, options) => {
       method = method.toUpperCase();
@@ -25,10 +25,10 @@ const Webhead = (opts) => {
         return request(redirect.method, redirect.url, redirect.options);
       }
 
-      state.url = url;
-      state.cookie = getCookie(url);
-      state.$ = loadjQuery(response);
-      state.response = response;
+      webhead.url = url;
+      webhead.cookie = getCookie(url);
+      webhead.$ = loadjQuery(response);
+      webhead.response = response;
 
       return response;
     },
@@ -83,8 +83,8 @@ const Webhead = (opts) => {
     toCookieUrl = (url) => url.href.replace(/\?.*/, ''),
 
     toURL = (url) => {
-      if (state.url && url.match(/^\//)) {
-        url = state.url.origin + url;
+      if (webhead.url && url.match(/^\//)) {
+        url = webhead.url.origin + url;
       }
       return new URL(url);
     },
@@ -153,11 +153,11 @@ const Webhead = (opts) => {
     };
 
   `get post put delete head patch`.split(' ').forEach(method => {
-    state[method] = async (...args) => await request(method, ...args);
+    webhead[method] = async (...args) => await request(method, ...args);
   });
 
-  state.submit = async (selector, data, options) => {
-    const form = state.$(selector);
+  webhead.submit = async (selector, data, options) => {
+    const form = webhead.$(selector);
     if (form.length) {
       const
         url = form.attr('action'),
@@ -182,13 +182,13 @@ const Webhead = (opts) => {
     }
   };
 
-  state.text = () => {
-    return state.response.data;
+  webhead.text = () => {
+    return webhead.response.data;
   };
 
-  state.json = () => {
-    if (state.response.data && state.response.headers['Content-Type'].toString().match('json')) {
-      return JSON.parse(state.response.data);
+  webhead.json = () => {
+    if (webhead.response.data && webhead.response.headers['Content-Type'].toString().match('json')) {
+      return JSON.parse(webhead.response.data);
     }
   };
 
@@ -198,7 +198,7 @@ const Webhead = (opts) => {
     cookieJar = new CookieJar();
   }
 
-  return state;
+  return webhead;
 };
 
 export default Webhead;
