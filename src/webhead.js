@@ -1,7 +1,7 @@
 import cheerio from 'cheerio';
 import fs from 'fs-extra';
 import nodeLibcurl from 'node-libcurl';
-import querystring from 'querystring';
+import param from 'jquery-param';
 import toughCookie from 'tough-cookie';
 
 const { CookieJar } = toughCookie;
@@ -69,7 +69,7 @@ const Webhead = (opts) => {
         };
         if (response.statusCode <= 303) {
           redirect.method = 'GET';
-          delete redirect.options.formData;
+          delete redirect.options.data;
         }
       }
 
@@ -103,7 +103,7 @@ const Webhead = (opts) => {
       }
     },
 
-    toCurlArgs = (method, url, { headers, formData }) => {
+    toCurlArgs = (method, url, { headers, data }) => {
       let curl = url.href;
 
       const
@@ -121,12 +121,12 @@ const Webhead = (opts) => {
         headers['User-Agent'] = userAgent;
       }
 
-      if (formData) {
-        formData = querystring.stringify(formData);
+      if (data) {
+        data = param(data);
         if (method == 'GET') {
-          curl += (curl.match(/\?/) ? '&' : '?') + formData;
+          curl += (curl.match(/\?/) ? '&' : '?') + data;
         } else {
-          opts.postFields = formData;
+          opts.postFields = data;
         }
         if (!headers['Content-Type']) {
           headers['Content-Type'] = 'application/x-www-form-urlencoded';
@@ -161,22 +161,23 @@ const Webhead = (opts) => {
     if (form.length) {
       const
         url = form.attr('action'),
-        method = form.attr('method') || 'GET',
-        formData = Object.assign(
-          form.serializeArray().reduce(
-            (formData, { name, value }) => {
-              formData[name] = value;
-              return formData;
-            },
-            {}
-          ),
-          data || {}
-        );
+        method = form.attr('method') || 'GET';
+
+      data = Object.assign(
+        form.serializeArray().reduce(
+          (data, { name, value }) => {
+            data[name] = value;
+            return data;
+          },
+          {}
+        ),
+        data || {}
+      );
 
       return await request(
         method,
         url,
-        { ...options, formData }
+        { ...options, data }
       );
     }
   };
