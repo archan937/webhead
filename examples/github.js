@@ -1,5 +1,5 @@
-import prompts from 'prompts';
-import Webhead from '../src/webhead.js';
+const prompts = require('prompts');
+const Webhead = require('../dist/webhead.js');
 
 (async () => {
 

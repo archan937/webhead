@@ -1,5 +1,9 @@
 .DS_Store
 cookies.json
+dist/*.map
+dist/*.modern.*
+dist/*.module.*
+dist/*.umd.*
 node_modules
 package-lock.json
 yarn.lock

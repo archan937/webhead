@@ -1,5 +1,5 @@
 import prompts from 'prompts';
-import Webhead from '../src/webhead.js';
+import Webhead from '../dist/webhead.js';
 
 (async () => {
 
