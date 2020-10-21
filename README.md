@@ -1,6 +1,6 @@
 # Webhead
 
-A simple web crawler package storing cookies, following redirects, traversing pages and submitting forms.
+An easy-to-use web crawler package storing cookies, following redirects, traversing pages and submitting forms.
 
 ## Installation
 
