@@ -8,85 +8,59 @@ const { CookieJar } = toughCookie;
 const { curly } = nodeLibcurl;
 
 const Webhead = (opts) => {
-  const { jarFile, userAgent, verbose } = opts || {};
+  const { jarFile, userAgent, verbose, beforeSend, complete } = opts || {};
 
   let
     cookieJar,
     webhead = {},
+    session = {},
 
     request = async (method, url, options) => {
-      method = method.toUpperCase();
-      url = toURL(url);
-      options = options || {};
+      let parameters = {
+        method: method.toUpperCase(),
+        url: toURL(url),
+        options: toOptions(options)
+      };
 
-      const { response, redirect } = await curl(method, url, options);
+      if (beforeSend) {
+        parameters = beforeSend(parameters, session);
+        parameters.method = parameters.method.toUpperCase();
+        parameters.url = toURL(parameters.url);
+        parameters.options = toOptions(parameters.options);
+      }
+
+      const { response, redirect } = await curl(parameters);
 
       if (redirect) {
         return request(redirect.method, redirect.url, redirect.options);
       }
 
-      webhead.url = url;
-      webhead.cookie = getCookie(url);
+      webhead.url = parameters.url;
+      webhead.cookie = getCookie(webhead.url.href);
       webhead.$ = loadjQuery(response);
       webhead.response = response;
+
+      if (complete) {
+        complete(parameters, session, webhead);
+      }
 
       return response;
     },
 
-    curl = async (method, url, options) => {
-      const
-        cookieUrl = toCookieUrl(url),
-        { curl, opts } = toCurlArgs(method, url, options);
-
-      if (verbose) {
-        console.debug(method, curl, opts);
-      }
-
-      const response = await curly[method.toLowerCase()](curl, opts);
-      let redirect;
-
-      response.headers = toHeaders(response.headers[0]);
-
-      if (verbose) {
-        console.debug(response);
-      }
-
-      if (response.headers['Set-Cookie']) {
-        response.headers['Set-Cookie'].forEach((cookie) => {
-          cookieJar.setCookieSync(cookie, cookieUrl);
-        });
-        if (jarFile) {
-          const cookies = cookieJar.toJSON().cookies;
-          fs.writeFileSync(jarFile, JSON.stringify(cookies, null, 2));
-        }
-      }
-
-      if (/^3/.test('' + response.statusCode)) {
-        redirect = {
-          method,
-          url: response.headers['Location'],
-          options
-        };
-        if (response.statusCode <= 303) {
-          redirect.method = 'GET';
-          delete redirect.options.data;
-        }
-      }
-
-      return {
-        response,
-        redirect
-      };
-    },
-
-    getCookie = (url) => cookieJar.getCookiesSync(toCookieUrl(url)).join('; '),
-    toCookieUrl = (url) => url.href.replace(/\?.*/, ''),
-
     toURL = (url) => {
+      if (url.constructor == URL) {
+        url = url.href;
+      }
       if (webhead.url && url.match(/^\//)) {
         url = webhead.url.origin + url;
       }
       return new URL(url);
+    },
+
+    toOptions = (object) => {
+      object || (object = {});
+      object.headers = toHeaders(object.headers);
+      return object;
     },
 
     toHeaders = (object) => {
@@ -103,15 +77,15 @@ const Webhead = (opts) => {
       }
     },
 
-    toCurlArgs = (method, url, { headers, data }) => {
-      let curl = url.href;
+    curl = async ({ method, url, options }) => {
+      let { headers, data } = options;
+
+      headers['Host'] = url.host;
+      url = url.href;
 
       const
-        opts = {},
-        cookie = getCookie(url);
-
-      headers = toHeaders(headers);
-      headers['Host'] = url.host;
+        cookie = getCookie(url),
+        opts = {};
 
       if (cookie.length) {
         headers['Cookie'] = cookie;
@@ -122,27 +96,78 @@ const Webhead = (opts) => {
       }
 
       if (data) {
-        data = param(data);
-        if (method == 'GET') {
-          curl += (curl.match(/\?/) ? '&' : '?') + data;
-        } else {
-          opts.postFields = data;
-        }
         if (!headers['Content-Type']) {
           headers['Content-Type'] = 'application/x-www-form-urlencoded';
         }
+        data = param(data);
+        if (method == 'GET') {
+          url += (url.match(/\?/) ? '&' : '?') + data;
+        } else {
+          opts.postFields = data;
+        }
+      }
+
+      opts.post = (method == 'POST');
+      opts.nobody = (method == 'HEAD');
+
+      if (!method.match(/(GET|HEAD|POST)/)) {
+        opts.customRequest = method;
       }
 
       opts.httpHeader = Object.entries(headers).map(
         header => header.join(': ')
       );
 
-      return { curl, opts };
+      verbose && console.log(method, url, options);
+      let response = await curly(url, opts);
+
+      return handleResponse(method, url, options, response);
     },
+
+    handleResponse = (method, url, options, { statusCode, data, headers }) => {
+      headers = toHeaders(headers[0]);
+      verbose && console.log({ statusCode, data, headers });
+
+      if (headers['Set-Cookie']) {
+        const cookieUrl = toCookieUrl(url);
+
+        headers['Set-Cookie'].forEach((cookie) => {
+          cookieJar.setCookieSync(cookie, cookieUrl);
+        });
+
+        if (jarFile) {
+          const cookies = cookieJar.toJSON().cookies;
+          fs.writeFileSync(jarFile, JSON.stringify(cookies, null, 2));
+        }
+      }
+
+      let redirect;
+
+      if (/^3/.test('' + statusCode)) {
+        redirect = {
+          method,
+          url: headers['Location'],
+          options
+        };
+        if (statusCode <= 303) {
+          redirect.method = 'GET';
+          delete redirect.options.data;
+        }
+      }
+
+      return {
+        response: { statusCode, data, headers },
+        redirect
+      };
+    },
+
+    toCookieUrl = (url) => url.replace(/\?.*/, ''),
+
+    getCookie = (url) => cookieJar.getCookiesSync(toCookieUrl(url)).join('; '),
 
     loadjQuery = ({ statusCode, headers, data }) => {
       if (/^2/.test('' + statusCode)) {
-        const contentType = headers['Content-Type'];
+        const contentType = '' + headers['Content-Type'];
         if (contentType.match('html')) {
           return cheerio.load(data);
         }
@@ -153,7 +178,7 @@ const Webhead = (opts) => {
     };
 
   `get post put delete head patch`.split(' ').forEach(method => {
-    webhead[method] = async (...args) => await request(method, ...args);
+    webhead[method] = async (...parameters) => await request(method, ...parameters);
   });
 
   webhead.submit = async (selector, data, options) => {
@@ -183,7 +208,9 @@ const Webhead = (opts) => {
   };
 
   webhead.text = () => {
-    return webhead.response.data;
+    if (webhead.response) {
+      return webhead.response.data;
+    }
   };
 
   webhead.json = () => {
