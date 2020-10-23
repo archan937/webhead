@@ -177,7 +177,7 @@ const Webhead = (opts) => {
       }
     };
 
-  `get post put delete head patch`.split(' ').forEach(method => {
+  `get post put patch delete head options`.split(' ').forEach(method => {
     webhead[method] = async (...parameters) => await request(method, ...parameters);
   });
 
