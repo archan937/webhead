@@ -80,7 +80,7 @@ const Webhead = (opts) => {
     },
 
     curl = async ({ method, url, options }) => {
-      let { headers, data, multiPartData } = options;
+      let { headers, data, multiPartData, json } = options;
 
       headers['Host'] = url.host;
       url = url.href;
@@ -122,6 +122,12 @@ const Webhead = (opts) => {
           }
           return data;
         });
+      }
+
+      if (json) {
+        headers['Content-Type'] = 'application/json';
+        opts.post = true;
+        opts.postFields = JSON.stringify(json);
       }
 
       opts.nobody = (method == 'HEAD');
