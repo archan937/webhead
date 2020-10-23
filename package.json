@@ -1,7 +1,7 @@
 {
   "name": "webhead",
   "version": "1.0.0",
-  "description": "An easy-to-use web crawler package storing cookies, following redirects, traversing pages and submitting forms.",
+  "description": "An easy-to-use Node web crawler package storing cookies, following redirects, traversing pages and submitting forms.",
   "source": "src/webhead.js",
   "main": "dist/webhead.js",
   "module": "dist/webhead.module.js",

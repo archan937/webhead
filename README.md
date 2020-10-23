@@ -1,6 +1,6 @@
 # Webhead
 
-An easy-to-use web crawler package storing cookies, following redirects, traversing pages and submitting forms.
+An easy-to-use Node web crawler package storing cookies, following redirects, traversing pages and submitting forms.
 
 ## Installation
 
@@ -28,6 +28,7 @@ Using Webhead is pretty much straightforward:
     });
 
     console.log('Bing search results:')
+
     webhead.$('#b_results h2 a').each((i, el) => {
       el = webhead.$(el);
       console.log('*', el.text())
