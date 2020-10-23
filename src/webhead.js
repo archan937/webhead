@@ -1,5 +1,6 @@
 import cheerio from 'cheerio';
 import fs from 'fs-extra';
+import mime from 'mime-types';
 import nodeLibcurl from 'node-libcurl';
 import param from 'jquery-param';
 import toughCookie from 'tough-cookie';
@@ -78,7 +79,7 @@ const Webhead = (opts) => {
     },
 
     curl = async ({ method, url, options }) => {
-      let { headers, data } = options;
+      let { headers, data, multiPartData } = options;
 
       headers['Host'] = url.host;
       url = url.href;
@@ -103,11 +104,25 @@ const Webhead = (opts) => {
         if (method == 'GET') {
           url += (url.match(/\?/) ? '&' : '?') + data;
         } else {
+          opts.post = true;
           opts.postFields = data;
         }
       }
 
-      opts.post = (method == 'POST');
+      if (multiPartData) {
+        opts.httpPost = multiPartData.map((data) => {
+          if (data.value) {
+            data.contents = data.value;
+            delete data.value;
+          }
+          if (data.file && !data.type) {
+            const type = mime.lookup(data.file);
+            type && (data.type = type);
+          }
+          return data;
+        });
+      }
+
       opts.nobody = (method == 'HEAD');
 
       if (!method.match(/(GET|HEAD|POST)/)) {
