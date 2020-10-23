@@ -11,6 +11,10 @@ To use Webhead in your project, run:
   # or "yarn add webhead"
   ```
 
+## DISCLAIMER
+
+Webhead is **NOT** a browser as it executes HTTP(s) using [node-libcurl](https://www.npmjs.com/package/node-libcurl) under the hood, [Cheerio](https://cheerio.js.org/) for traversing HTML (or XML) pages and [tough-cookie](https://www.npmjs.com/package/tough-cookie) for managing cookies. Ease in usability of crawling pages, submitting forms, talking to APIs (file uploads included) is the main goal of Webhead.
+
 ## Usage
 
 Using Webhead is pretty much straightforward:
@@ -39,6 +43,83 @@ Using Webhead is pretty much straightforward:
   ```
 
 See also the [Github login example](https://github.com/archan937/webhead/blob/master/examples/github.js).
+
+### Initializing a Webhead instance
+
+As in the initial example, initializing a Webhead instance is done by invoking the `Webhead()` function.
+
+It supports the following options:
+
+  * `jarFile` - The path at which cookies should be loaded from and stored to.
+  * `userAgent` - The `User-Agent` header which will be send to the receiving server.
+  * `verbose` - Prints out debug information when sending requests.
+  * `beforeSend` - A callback function which will be able to adjust every request before being send.
+  * `complete` - A callback function which will be invoked after every request has been completed.
+
+An example using all of the available options:
+
+  ```javascript
+  const webhead = Webhead({
+    jarFile: 'some/directory/cookies.json',
+    userAgent: 'peter-parker/1.0',
+    verbose: true,
+    beforeSend: ({ method, url, options }, { someToken }) => {
+      if ((method != 'GET') && someToken) {
+        options.headers['X-Some-Token'] = someToken;
+      }
+      return { method, url, options };
+    },
+    complete: (parameters, session, webhead) => {
+      if (!session.someToken) {
+        const token = webhead.$('meta[name="some-token"]');
+        if (token.length) {
+          session.someToken = token.attr('content');
+        }
+      }
+    }
+  });
+  ```
+
+### Cookies and redirects
+
+Webhead handles cookies and redirects as expected when using an actual browser.
+
+### Using the Webhead instance
+
+The Webhead instance provides the following functions:
+
+  * `get` - Sends a `GET` request.
+  * `post` - Sends a `POST` request.
+  * `put` - Sends a `PUT` request.
+  * `patch` - Sends a `PATCH` request.
+  * `delete` - Sends a `DELETE` request.
+  * `head` - Sends a `HEAD` request.
+  * `options` - Sends an `OPTIONS` request.
+  * `text` - Returns the body of the response of the last request.
+  * `json` - Returns the JSON parsed object based on the last response.
+  * `$` - Returns a Cheerio instance based on the last response
+  (supports both `text/html` and `text/xml`).
+  * `submit` - Submits a form which located in the HTML of the last response.
+
+#### Request payloads
+
+The Webhead request options are as follows:
+
+  * `headers` - An object containing headers for the request (`{"Content-Type": "application/json" }` for instance).
+  * `data` - An object containing either query string parameters (for `GET` requests) or the request body (for `POST`, `PUT`, etc) with the straightforward `{name: "value"}` format.
+  * `multiPartData` - An array containing multi-part form data (see the array in the [node-libcurl multi-part upload example](https://github.com/JCMais/node-libcurl#multipart-upload--httppost-libcurl-option-content-type-multipartform-data)).
+  * `json` - An object which will be send as JSON request payload.
+
+#### Traversing
+
+With `webhead.$('CSS selector')` you can traverse the HTML / XML page. See the [Cheerio documentation page](https://cheerio.js.org) for more information.
+
+#### Submitting a form
+
+A `webhead` instance provides the `submit()` function for submitting forms on a page. It accepts the following arguments:
+
+  * `selector` - A string matching the form using [CSS selectors](https://www.w3schools.com/cssref/css_selectors.asp).
+  * `data` - An object containing form data (`{name: "value"}` format).
 
 ## Contact me
 

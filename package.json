@@ -26,7 +26,15 @@
     "spider",
     "crawler",
     "scraper",
-    "headless"
+    "headless",
+    "curl",
+    "traversing",
+    "json",
+    "cookies",
+    "redirects",
+    "forms",
+    "file uploads",
+    "api"
   ],
   "author": "Paul Engel",
   "license": "MIT",
