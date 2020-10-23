@@ -24,14 +24,14 @@ describe('GET', () => {
   it('supports JSON pages', async () => {
     await webhead.get('/newsfeed.json');
     expect(webhead.text()).toMatch('{"title":"Webhead is out!","description":"An easy-to-use Node web crawler package"}');
-    expect(webhead.$).toBeUndefined();
+    expect(webhead.$('*')).toBeUndefined();
     expect(webhead.json()).toStrictEqual({ "description": "An easy-to-use Node web crawler package", "title": "Webhead is out!" });
   });
 
   it('supports plain text pages', async () => {
     await webhead.get('/plain-text');
     expect(webhead.text()).toMatch('Plain text!');
-    expect(webhead.$).toBeUndefined();
+    expect(webhead.$('*')).toBeUndefined();
     expect(webhead.json()).toBeUndefined();
   });
 });

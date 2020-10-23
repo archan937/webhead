@@ -12,9 +12,11 @@ const Webhead = (opts) => {
   const { jarFile, userAgent, verbose, beforeSend, complete } = opts || {};
 
   let
-    cookieJar,
     webhead = {},
     session = {},
+    cookieJar,
+    cachedCheerio,
+    cachedJSON,
 
     request = async (method, url, options) => {
       let parameters = {
@@ -38,7 +40,6 @@ const Webhead = (opts) => {
 
       webhead.url = parameters.url;
       webhead.cookie = getCookie(webhead.url.href);
-      webhead.$ = loadjQuery(response);
       webhead.response = response;
 
       if (complete) {
@@ -170,31 +171,51 @@ const Webhead = (opts) => {
         }
       }
 
+      cachedCheerio = undefined;
+      cachedJSON = undefined;
+
       return {
         response: { statusCode, data, headers },
         redirect
       };
     },
 
-    toCookieUrl = (url) => url.replace(/\?.*/, ''),
+    toCookieUrl = (url) => {
+      return url.replace(/\?.*/, '')
+    },
 
-    getCookie = (url) => cookieJar.getCookiesSync(toCookieUrl(url)).join('; '),
-
-    loadjQuery = ({ statusCode, headers, data }) => {
-      if (/^2/.test('' + statusCode)) {
-        const contentType = '' + headers['Content-Type'];
-        if (contentType.match('html')) {
-          return cheerio.load(data);
-        }
-        if (contentType.match('xml')) {
-          return cheerio.load(data, { xmlMode: true });
-        }
-      }
+    getCookie = (url) => {
+      return cookieJar.getCookiesSync(toCookieUrl(url)).join('; ')
     };
 
   `get post put patch delete head options`.split(' ').forEach(method => {
     webhead[method] = async (...parameters) => await request(method, ...parameters);
   });
+
+  webhead.text = () => {
+    return webhead.response ? webhead.response.data : '';
+  };
+
+  webhead.json = () => {
+    if (!cachedJSON && webhead.response) {
+      const { data, headers } = webhead.response;
+      if (data && ('' + headers['Content-Type']).match('json')) {
+        cachedJSON = JSON.parse(data);
+      }
+    }
+    return cachedJSON;
+  };
+
+  webhead.$ = (...args) => {
+    if (!cachedCheerio && webhead.response) {
+      const { data, headers } = webhead.response;
+      const match = ('' + headers['Content-Type']).match(/(html|xml)/);
+      if (match) {
+        cachedCheerio = cheerio.load(data, { xmlMode: match[1] == 'xml' });
+      }
+    }
+    return cachedCheerio ? cachedCheerio(...args) : undefined;
+  };
 
   webhead.submit = async (selector, data, options) => {
     const form = webhead.$(selector);
@@ -219,18 +240,6 @@ const Webhead = (opts) => {
         url,
         { ...options, data }
       );
-    }
-  };
-
-  webhead.text = () => {
-    if (webhead.response) {
-      return webhead.response.data;
-    }
-  };
-
-  webhead.json = () => {
-    if (webhead.response.data && webhead.response.headers['Content-Type'].toString().match('json')) {
-      return JSON.parse(webhead.response.data);
     }
   };
 
