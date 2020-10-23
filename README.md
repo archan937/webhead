@@ -1,6 +1,6 @@
 # Webhead
 
-An easy-to-use Node web crawler package storing cookies, following redirects, traversing pages and submitting forms.
+An easy-to-use Node web crawler storing cookies, following redirects, traversing pages and submitting forms.
 
 ## Installation
 
@@ -20,7 +20,7 @@ Webhead is **NOT** a browser as it executes HTTP(s) using [node-libcurl](https:/
 Using Webhead is pretty much straightforward:
 
   ```javascript
-  import Webhead from '../src/webhead.js';
+  import Webhead from 'webhead';
 
   (async () => {
 
@@ -110,9 +110,53 @@ The Webhead request options are as follows:
   * `multiPartData` - An array containing multi-part form data (see the array in the [node-libcurl multi-part upload example](https://github.com/JCMais/node-libcurl#multipart-upload--httppost-libcurl-option-content-type-multipartform-data)).
   * `json` - An object which will be send as JSON request payload.
 
+  ```javascript
+  // GET request
+  await webhead.get('https://daily-bugle.com/super-heroes');
+  await webhead.get('https://daily-bugle.com/super-heroes', {
+    headers: {
+      'X-Men-Token': 'M4rv3L'
+    }
+  });
+
+  // POST request with content type 'application/x-www-form-urlencoded'
+  await webhead.post('https://daily-bugle.com/super-heroes', {
+    data: {
+      name: 'Ben Reilly',
+      alterEgo: 'Scarlet Spider'
+    }
+  });
+
+  // PUT request with content type 'multipart/form-data'
+  await webhead.put('https://daily-bugle.com/villains', {
+    multiPartData: [
+      { name: 'thumbnail', file: './thumbnails/venom.jpg' }, // 'type' is optional
+      { name: 'name', contents: 'Venom' },
+      { name: 'alterEgo', value: 'Eddie Brock' } // 'value' is an alias for 'contents'
+    ]
+  });
+
+  // POST request with content type 'application/json'
+  await webhead.post('https://daily-bugle.com/profile.json', {
+    json: {
+      firstName: 'Peter',
+      lastName: 'Parker',
+      isWebhead: true
+    }
+  });
+  ```
+
 #### Traversing
 
 With `webhead.$('CSS selector')` you can traverse the HTML / XML page. See the [Cheerio documentation page](https://cheerio.js.org) for more information.
+
+  ```javascript
+  const
+    username = webhead.$('summary img').attr('alt'),
+    email = webhead.$('[name="user[profile_email]"]').val();
+
+  console.log(`Hello, ${username}! <${email}>`);
+  ```
 
 #### Submitting a form
 
@@ -120,6 +164,13 @@ A `webhead` instance provides the `submit()` function for submitting forms on a 
 
   * `selector` - A string matching the form using [CSS selectors](https://www.w3schools.com/cssref/css_selectors.asp).
   * `data` - An object containing form data (`{name: "value"}` format).
+
+  ```javascript
+  await webhead.submit('form[name="login"]', {
+    login: "peter@dailybugle.com",
+    password: "I4m.Spider-Man!"
+  });
+  ```
 
 ## Contact me
 

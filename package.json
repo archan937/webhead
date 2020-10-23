@@ -1,7 +1,7 @@
 {
   "name": "webhead",
-  "version": "1.0.0",
-  "description": "An easy-to-use Node web crawler package storing cookies, following redirects, traversing pages and submitting forms.",
+  "version": "1.0.1",
+  "description": "An easy-to-use Node web crawler storing cookies, following redirects, traversing pages and submitting forms.",
   "source": "src/webhead.js",
   "main": "dist/webhead.js",
   "module": "dist/webhead.module.js",
@@ -15,7 +15,7 @@
     "dev": "microbundle watch",
     "example:bing": "node --trace-warnings examples/bing.mjs",
     "example:github": "node --trace-warnings examples/github.js",
-    "prepublish": "microbundle",
+    "prepublishOnly": "microbundle",
     "test": "jest"
   },
   "repository": {
@@ -27,6 +27,7 @@
     "crawler",
     "scraper",
     "headless",
+    "node",
     "curl",
     "traversing",
     "json",

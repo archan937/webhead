@@ -16,7 +16,7 @@ app.get('/newsfeed.json', (req, res) => {
   res
     .json({
       title: 'Webhead is out!',
-      description: 'An easy-to-use Node web crawler package'
+      description: 'An easy-to-use Node web crawler'
     });
 });
 
