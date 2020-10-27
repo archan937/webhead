@@ -159,7 +159,19 @@ const Webhead = (opts) => {
 
         if (jarFile) {
           const cookies = cookieJar.toJSON().cookies;
-          fs.writeFileSync(jarFile, JSON.stringify(cookies, null, 2));
+          let json = {};
+
+          if (fs.pathExistsSync(jarFile)) {
+            json = fs.readJsonSync(jarFile);
+          }
+
+          if (json.constructor == Object) {
+            json.cookies = cookies;
+          } else {
+            json = cookies;
+          }
+
+          fs.writeFileSync(jarFile, JSON.stringify(json, null, 2));
         }
       }
 
@@ -250,7 +262,14 @@ const Webhead = (opts) => {
   };
 
   if (fs.pathExistsSync(jarFile)) {
-    cookieJar = CookieJar.fromJSON({ cookies: fs.readJsonSync(jarFile) });
+    const
+      json = fs.readJsonSync(jarFile),
+      cookies = json.cookies || json;
+
+    cookieJar = CookieJar.fromJSON({
+      cookies: (cookies.constructor == Array) ? cookies : []
+    });
+
   } else {
     cookieJar = new CookieJar();
   }
