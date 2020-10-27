@@ -6,6 +6,7 @@
   "main": "dist/webhead.js",
   "module": "dist/webhead.module.js",
   "unpkg": "dist/webhead.umd.js",
+  "types": "dist/webhead.d.ts",
   "files": [
     "dist",
     "src/webhead.js"
