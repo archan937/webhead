@@ -1,5 +1,10 @@
 ## Webhead CHANGELOG
 
+### Version 1.0.3 (October 29, 2020)
+
+* Return empty array when cheerio is not applicable
+* Correct webhead.$() TypeScript declaration
+
 ### Version 1.0.2 (October 27, 2020)
 
 * Add TypeScript declaration file
