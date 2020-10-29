@@ -44,7 +44,8 @@ export interface WebheadInstance {
   options(url: string, options?: WebheadRequestOptions): Promise<WebheadResponse>;
   text(): string;
   json(): any;
-  $(): Promise<WebheadResponse>;
+  $(html: string | Buffer, options?: cheerio.CheerioParserOptions): cheerio.Root | [];
+  $(element: Element, options?: cheerio.CheerioParserOptions): cheerio.Root | [];
   submit(url: string, formData: object): Promise<WebheadResponse>;
 }
 
