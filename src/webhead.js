@@ -232,7 +232,7 @@ const Webhead = (opts) => {
         cachedCheerio = cheerio.load(data, { xmlMode: match[1] == 'xml' });
       }
     }
-    return cachedCheerio ? cachedCheerio(...args) : undefined;
+    return cachedCheerio ? cachedCheerio(...args) : [];
   };
 
   webhead.submit = async (selector, data, options) => {
