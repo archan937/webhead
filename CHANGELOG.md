@@ -1,5 +1,9 @@
 ## Webhead CHANGELOG
 
+### Version 1.1.0 (November 27, 2020)
+
+* Drop node-libcurl in favor of axios
+
 ### Version 1.0.3 (October 29, 2020)
 
 * Return empty array when cheerio is not applicable
