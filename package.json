@@ -18,6 +18,7 @@
     "example:github": "node --trace-warnings examples/github.js",
     "example:typicode": "node --trace-warnings examples/typicode.js",
     "prepublishOnly": "microbundle",
+    "prettier": "npx prettier --write .",
     "test": "jest"
   },
   "repository": {
@@ -57,6 +58,7 @@
     "express": "^4.17.1",
     "jest": "^26.6.0",
     "microbundle": "^0.12.4",
+    "prettier": "^2.2.0",
     "prompts": "^2.3.2"
   }
 }

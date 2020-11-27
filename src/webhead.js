@@ -10,18 +10,16 @@ const { CookieJar } = toughCookie;
 const Webhead = (opts) => {
   const { jarFile, userAgent, verbose, beforeSend, complete } = opts || {};
 
-  let
-    webhead = {},
+  let webhead = {},
     session = {},
     cookieJar,
     cachedCheerio,
     cachedJSON,
-
     request = async (method, url, options) => {
       let parameters = {
         method: method.toUpperCase(),
         url: toURL(url),
-        options: toOptions(options)
+        options: toOptions(options),
       };
 
       if (beforeSend) {
@@ -47,7 +45,6 @@ const Webhead = (opts) => {
 
       return response;
     },
-
     toURL = (url) => {
       if (url.constructor == URL) {
         url = url.href;
@@ -57,37 +54,30 @@ const Webhead = (opts) => {
       }
       return new URL(url);
     },
-
     toOptions = (object) => {
       object || (object = {});
       object.headers = toHeaders(object.headers);
       return object;
     },
-
     toHeaders = (object) => {
       if (object) {
-        return Object.entries(object).reduce(
-          (object, [key, value]) => {
-            object[key.replace(/\b./g, (c) => c.toUpperCase())] = value;
-            return object;
-          },
-          {}
-        );
+        return Object.entries(object).reduce((object, [key, value]) => {
+          object[key.replace(/\b./g, (c) => c.toUpperCase())] = value;
+          return object;
+        }, {});
       } else {
         return {};
       }
     },
-
     axiosRequest = async ({ method, url, options }) => {
       let { headers, data, multiPartData, json } = options;
 
-      const
-        cookie = getCookie(url.href),
+      const cookie = getCookie(url.href),
         opts = {
           method,
           headers: Object.assign({}, headers),
           maxRedirects: 0,
-          validateStatus: (status) => status < 500
+          validateStatus: (status) => status < 500,
         };
 
       opts.headers['Host'] = url.host;
@@ -110,7 +100,6 @@ const Webhead = (opts) => {
           }
           opts.data = param(data);
         }
-
       } else if (multiPartData) {
         const form = new FormData();
 
@@ -118,14 +107,17 @@ const Webhead = (opts) => {
           if (part.file) {
             form.append(part.name, fs.createReadStream(part.file));
           } else {
-            form.append(part.name, part.hasOwnProperty('value') ? part.value : part.contents);
+            form.append(
+              part.name,
+              part.hasOwnProperty('value') ? part.value : part.contents
+            );
           }
         });
 
         opts.data = form;
         opts.headers = {
           ...opts.headers,
-          ...form.getHeaders()
+          ...form.getHeaders(),
         };
       }
 
@@ -138,15 +130,13 @@ const Webhead = (opts) => {
       let response = await axios({
         url,
         method,
-        ...opts
+        ...opts,
       });
 
       return handleResponse(method, url, options, response);
     },
-
     handleResponse = (method, url, options, response) => {
-      const
-        statusCode = response.status,
+      const statusCode = response.status,
         data = response.data,
         headers = toHeaders(response.headers);
 
@@ -183,7 +173,7 @@ const Webhead = (opts) => {
         redirect = {
           method,
           url: headers['Location'],
-          options
+          options,
         };
         if (statusCode <= 303) {
           redirect.method = 'GET';
@@ -196,20 +186,19 @@ const Webhead = (opts) => {
 
       return {
         response: { statusCode, data, headers },
-        redirect
+        redirect,
       };
     },
-
     toCookieUrl = (url) => {
-      return url.replace(/\?.*/, '')
+      return url.replace(/\?.*/, '');
     },
-
     getCookie = (url) => {
-      return cookieJar.getCookiesSync(toCookieUrl(url)).join('; ')
+      return cookieJar.getCookiesSync(toCookieUrl(url)).join('; ');
     };
 
-  `get post put patch delete head options`.split(' ').forEach(method => {
-    webhead[method] = async (...parameters) => await request(method, ...parameters);
+  `get post put patch delete head options`.split(' ').forEach((method) => {
+    webhead[method] = async (...parameters) =>
+      await request(method, ...parameters);
   });
 
   webhead.text = () => {
@@ -240,38 +229,28 @@ const Webhead = (opts) => {
   webhead.submit = async (selector, data, options) => {
     const form = webhead.$(selector);
     if (form.length) {
-      const
-        url = form.attr('action'),
+      const url = form.attr('action'),
         method = form.attr('method') || 'GET';
 
       data = Object.assign(
-        form.serializeArray().reduce(
-          (data, { name, value }) => {
-            data[name] = value;
-            return data;
-          },
-          {}
-        ),
+        form.serializeArray().reduce((data, { name, value }) => {
+          data[name] = value;
+          return data;
+        }, {}),
         data || {}
       );
 
-      return await request(
-        method,
-        url,
-        { ...options, data }
-      );
+      return await request(method, url, { ...options, data });
     }
   };
 
   if (fs.pathExistsSync(jarFile)) {
-    const
-      json = fs.readJsonSync(jarFile),
+    const json = fs.readJsonSync(jarFile),
       cookies = json.cookies || json;
 
     cookieJar = CookieJar.fromJSON({
-      cookies: (cookies.constructor == Array) ? cookies : []
+      cookies: cookies.constructor == Array ? cookies : [],
     });
-
   } else {
     cookieJar = new CookieJar();
   }
