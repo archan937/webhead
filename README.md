@@ -13,7 +13,7 @@ To use Webhead in your project, run:
 
 ## DISCLAIMER
 
-Webhead is **NOT** a browser as it executes HTTP(s) using [node-libcurl](https://www.npmjs.com/package/node-libcurl) under the hood, [Cheerio](https://cheerio.js.org/) for traversing HTML (or XML) pages and [tough-cookie](https://www.npmjs.com/package/tough-cookie) for managing cookies. Ease in usability of crawling pages, submitting forms, talking to APIs (file uploads included) is the main goal of Webhead.
+Webhead is **NOT** a browser as it executes HTTP(s) using [axios](https://www.npmjs.com/package/axios) under the hood, [Cheerio](https://cheerio.js.org/) for traversing HTML (or XML) pages and [tough-cookie](https://www.npmjs.com/package/tough-cookie) for managing cookies. Ease in usability of crawling pages, submitting forms, talking to APIs (file uploads included) is the main goal of Webhead.
 
 ## Usage
 
@@ -107,7 +107,7 @@ The Webhead request options are as follows:
 
   * `headers` - An object containing headers for the request (`{"Content-Type": "application/json" }` for instance).
   * `data` - An object containing either query string parameters (for `GET` requests) or the request body (for `POST`, `PUT`, etc) with the straightforward `{name: "value"}` format.
-  * `multiPartData` - An array containing multi-part form data (see the array in the [node-libcurl multi-part upload example](https://github.com/JCMais/node-libcurl#multipart-upload--httppost-libcurl-option-content-type-multipartform-data)).
+  * `multiPartData` - An array containing multi-part form data.
   * `json` - An object which will be send as JSON request payload.
 
   ```javascript
