@@ -1,12 +1,11 @@
+import axios from 'axios';
 import cheerio from 'cheerio';
+import FormData from 'form-data';
 import fs from 'fs-extra';
-import mime from 'mime-types';
-import nodeLibcurl from 'node-libcurl';
 import param from 'jquery-param';
 import toughCookie from 'tough-cookie';
 
 const { CookieJar } = toughCookie;
-const { curly } = nodeLibcurl;
 
 const Webhead = (opts) => {
   const { jarFile, userAgent, verbose, beforeSend, complete } = opts || {};
@@ -32,7 +31,7 @@ const Webhead = (opts) => {
         parameters.options = toOptions(parameters.options);
       }
 
-      const { response, redirect } = await curl(parameters);
+      const { response, redirect } = await axiosRequest(parameters);
 
       if (redirect) {
         return request(redirect.method, redirect.url, redirect.options);
@@ -79,75 +78,78 @@ const Webhead = (opts) => {
       }
     },
 
-    curl = async ({ method, url, options }) => {
+    axiosRequest = async ({ method, url, options }) => {
       let { headers, data, multiPartData, json } = options;
 
-      headers['Host'] = url.host;
+      const
+        cookie = getCookie(url.href),
+        opts = {
+          method,
+          headers: Object.assign({}, headers),
+          maxRedirects: 0,
+          validateStatus: (status) => status < 500
+        };
+
+      opts.headers['Host'] = url.host;
       url = url.href;
 
-      const
-        cookie = getCookie(url),
-        opts = {};
-
       if (cookie.length) {
-        headers['Cookie'] = cookie;
+        opts.headers['Cookie'] = cookie;
       }
 
-      if (!headers['User-Agent'] && userAgent) {
-        headers['User-Agent'] = userAgent;
+      if (!opts.headers['User-Agent'] && userAgent) {
+        opts.headers['User-Agent'] = userAgent;
       }
 
       if (data) {
-        if (!headers['Content-Type']) {
-          headers['Content-Type'] = 'application/x-www-form-urlencoded';
-        }
-        data = param(data);
         if (method == 'GET') {
-          url += (url.match(/\?/) ? '&' : '?') + data;
+          url += (url.match(/\?/) ? '&' : '?') + param(data);
         } else {
-          opts.post = true;
-          opts.postFields = data;
+          if (!opts.headers['Content-Type']) {
+            opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
+          }
+          opts.data = param(data);
         }
-      }
 
-      if (multiPartData) {
-        opts.httpPost = multiPartData.map((data) => {
-          if (data.value) {
-            data.contents = data.value;
-            delete data.value;
+      } else if (multiPartData) {
+        const form = new FormData();
+
+        (multiPartData || []).forEach((part) => {
+          if (part.file) {
+            form.append(part.name, fs.createReadStream(part.file));
+          } else {
+            form.append(part.name, part.hasOwnProperty('value') ? part.value : part.contents);
           }
-          if (data.file && !data.type) {
-            const type = mime.lookup(data.file);
-            type && (data.type = type);
-          }
-          return data;
         });
+
+        opts.data = form;
+        opts.headers = {
+          ...opts.headers,
+          ...form.getHeaders()
+        };
       }
 
       if (json) {
-        headers['Content-Type'] = 'application/json';
-        opts.post = true;
-        opts.postFields = JSON.stringify(json);
+        opts.headers['Content-Type'] = 'application/json';
+        opts.data = JSON.stringify(json);
       }
 
-      opts.nobody = (method == 'HEAD');
-
-      if (!method.match(/(GET|HEAD|POST)/)) {
-        opts.customRequest = method;
-      }
-
-      opts.httpHeader = Object.entries(headers).map(
-        header => header.join(': ')
-      );
-
-      verbose && console.log(method, url, options);
-      let response = await curly(url, opts);
+      verbose && console.log(method, url, opts);
+      let response = await axios({
+        url,
+        method,
+        ...opts
+      });
 
       return handleResponse(method, url, options, response);
     },
 
-    handleResponse = (method, url, options, { statusCode, data, headers }) => {
-      headers = toHeaders(headers[0]);
+    handleResponse = (method, url, options, response) => {
+      const
+        statusCode = response.status,
+        data = response.data,
+        headers = toHeaders(response.headers);
+
       verbose && console.log({ statusCode, data, headers });
 
       if (headers['Set-Cookie']) {
@@ -218,7 +220,7 @@ const Webhead = (opts) => {
     if (!cachedJSON && webhead.response) {
       const { data, headers } = webhead.response;
       if (data && ('' + headers['Content-Type']).match('json')) {
-        cachedJSON = JSON.parse(data);
+        cachedJSON = data;
       }
     }
     return cachedJSON;
