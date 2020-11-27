@@ -30,7 +30,8 @@
     "crawler",
     "scraper",
     "headless",
-    "axios",
+    "node",
+    "fetch",
     "traversing",
     "json",
     "cookies",
@@ -47,11 +48,11 @@
   "homepage": "https://github.com/archan937/webhead#readme",
   "dependencies": {
     "@types/cheerio": "^0.22.22",
-    "axios": "^0.21.0",
     "cheerio": "^1.0.0-rc.3",
     "form-data": "^3.0.0",
     "fs-extra": "^9.0.1",
     "jquery-param": "^1.1.3",
+    "node-fetch": "^2.6.1",
     "tough-cookie": "^4.0.0"
   },
   "devDependencies": {

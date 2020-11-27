@@ -13,7 +13,7 @@ To use Webhead in your project, run:
 
 ## DISCLAIMER
 
-Webhead is **NOT** a browser as it executes HTTP(s) using [axios](https://www.npmjs.com/package/axios) under the hood, [Cheerio](https://cheerio.js.org/) for traversing HTML (or XML) pages and [tough-cookie](https://www.npmjs.com/package/tough-cookie) for managing cookies. Ease in usability of crawling pages, submitting forms, talking to APIs (file uploads included) is the main goal of Webhead.
+Webhead is **NOT** a browser as it executes HTTP(s) using [node-fetch](https://www.npmjs.com/package/node-fetch) under the hood, [Cheerio](https://cheerio.js.org/) for traversing HTML (or XML) pages and [tough-cookie](https://www.npmjs.com/package/tough-cookie) for managing cookies. Ease in usability of crawling pages, submitting forms, talking to APIs (file uploads included) is the main goal of Webhead.
 
 ## Usage
 

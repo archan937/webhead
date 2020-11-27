@@ -1,7 +1,7 @@
-import axios from 'axios';
 import cheerio from 'cheerio';
 import FormData from 'form-data';
 import fs from 'fs-extra';
+import nodeFetch from 'node-fetch';
 import param from 'jquery-param';
 import toughCookie from 'tough-cookie';
 
@@ -29,7 +29,7 @@ const Webhead = (opts) => {
         parameters.options = toOptions(parameters.options);
       }
 
-      const { response, redirect } = await axiosRequest(parameters);
+      const { response, redirect } = await fetch(parameters);
 
       if (redirect) {
         return request(redirect.method, redirect.url, redirect.options);
@@ -62,6 +62,9 @@ const Webhead = (opts) => {
     toHeaders = (object) => {
       if (object) {
         return Object.entries(object).reduce((object, [key, value]) => {
+          if (key.toLowerCase() != 'set-cookie' && Array.isArray(value)) {
+            value = value.join('; ');
+          }
           object[key.replace(/\b./g, (c) => c.toUpperCase())] = value;
           return object;
         }, {});
@@ -69,15 +72,14 @@ const Webhead = (opts) => {
         return {};
       }
     },
-    axiosRequest = async ({ method, url, options }) => {
+    fetch = async ({ method, url, options }) => {
       let { headers, data, multiPartData, json } = options;
 
       const cookie = getCookie(url.href),
         opts = {
           method,
           headers: Object.assign({}, headers),
-          maxRedirects: 0,
-          validateStatus: (status) => status < 500,
+          redirect: 'manual',
         };
 
       opts.headers['Host'] = url.host;
@@ -98,7 +100,7 @@ const Webhead = (opts) => {
           if (!opts.headers['Content-Type']) {
             opts.headers['Content-Type'] = 'application/x-www-form-urlencoded';
           }
-          opts.data = param(data);
+          opts.body = param(data);
         }
       } else if (multiPartData) {
         const form = new FormData();
@@ -114,7 +116,7 @@ const Webhead = (opts) => {
           }
         });
 
-        opts.data = form;
+        opts.body = form;
         opts.headers = {
           ...opts.headers,
           ...form.getHeaders(),
@@ -123,22 +125,21 @@ const Webhead = (opts) => {
 
       if (json) {
         opts.headers['Content-Type'] = 'application/json';
-        opts.data = JSON.stringify(json);
+        opts.body = JSON.stringify(json);
       }
 
       verbose && console.log(method, url, opts);
-      let response = await axios({
-        url,
+      let response = await nodeFetch(url, {
         method,
         ...opts,
       });
 
-      return handleResponse(method, url, options, response);
+      return await handleResponse(method, url, options, response);
     },
-    handleResponse = (method, url, options, response) => {
+    handleResponse = async (method, url, options, response) => {
       const statusCode = response.status,
-        data = response.data,
-        headers = toHeaders(response.headers);
+        data = await response.text(),
+        headers = toHeaders(response.headers.raw());
 
       verbose && console.log({ statusCode, data, headers });
 
@@ -209,7 +210,7 @@ const Webhead = (opts) => {
     if (!cachedJSON && webhead.response) {
       const { data, headers } = webhead.response;
       if (data && ('' + headers['Content-Type']).match('json')) {
-        cachedJSON = data;
+        cachedJSON = JSON.parse(data);
       }
     }
     return cachedJSON;
