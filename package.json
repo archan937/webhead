@@ -16,6 +16,7 @@
     "dev": "microbundle watch",
     "example:bing": "node --trace-warnings examples/bing.mjs",
     "example:github": "node --trace-warnings examples/github.js",
+    "example:typicode": "node --trace-warnings examples/typicode.js",
     "prepublishOnly": "microbundle",
     "test": "jest"
   },
