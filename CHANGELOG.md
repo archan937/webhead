@@ -1,5 +1,9 @@
 ## Webhead CHANGELOG
 
+### Version 1.1.1 (November 27, 2020)
+
+* Drop axios in favor of node-fetch
+
 ### Version 1.1.0 (November 27, 2020)
 
 * Drop node-libcurl in favor of axios
