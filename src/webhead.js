@@ -49,10 +49,7 @@ const Webhead = (opts) => {
       if (url.constructor == URL) {
         url = url.href;
       }
-      if (webhead.url && url.match(/^\//)) {
-        url = webhead.url.origin + url;
-      }
-      return new URL(url);
+      return new URL(url, webhead.url);
     },
     toOptions = (object) => {
       object || (object = {});
