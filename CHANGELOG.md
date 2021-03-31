@@ -1,5 +1,9 @@
 ## Webhead CHANGELOG
 
+### Version 1.1.2 (March 31, 2021)
+
+* Improve resolving relative URLs
+
 ### Version 1.1.1 (November 27, 2020)
 
 * Drop axios in favor of node-fetch
