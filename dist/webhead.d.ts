@@ -1,18 +1,22 @@
 type Headers = Record<string, string>;
 
+export interface AnyObject {
+  [key: string]: any;
+}
+
 export interface WebheadOptions {
   jarFile?: string;
   userAgent?: string;
   verbose?: boolean;
-  beforeSend(
+  beforeSend?: (
     parameters: WebheadRequestParameters,
-    session: object,
-  ): WebheadRequestParameters;
-  complete(
+    session: AnyObject,
+  ) => WebheadRequestParameters;
+  complete?: (
     parameters: WebheadRequestParameters,
-    session: object,
+    session: AnyObject,
     webhead: WebheadInstance,
-  ): void;
+  ) => void;
 }
 
 export interface WebheadRequestParameters {
@@ -49,4 +53,4 @@ export interface WebheadInstance {
   submit(url: string, formData: object): Promise<WebheadResponse>;
 }
 
-export default function Webhead(options: WebheadOptions): WebheadInstance;
+export default function Webhead(options?: WebheadOptions): WebheadInstance;
