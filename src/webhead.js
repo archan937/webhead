@@ -242,6 +242,10 @@ const Webhead = (opts) => {
     }
   };
 
+  webhead.clearCookies = () => {
+    cookieJar.removeAllCookiesSync();
+  };
+
   if (fs.pathExistsSync(jarFile)) {
     const json = fs.readJsonSync(jarFile),
       cookies = json.cookies || json;

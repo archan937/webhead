@@ -51,6 +51,7 @@ export interface WebheadInstance {
   $(html: string | Buffer, options?: cheerio.CheerioParserOptions): cheerio.Root | [];
   $(element: Element, options?: cheerio.CheerioParserOptions): cheerio.Root | [];
   submit(url: string, formData: object): Promise<WebheadResponse>;
+  clearCookies(): void;
   url?: URL;
 }
 
