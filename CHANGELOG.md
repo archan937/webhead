@@ -1,5 +1,11 @@
 ## Webhead CHANGELOG
 
+### Version 1.1.3 (April 15, 2021)
+
+* Make webhead options optional
+* Add url to WebheadInstance typescript spec
+* Add clearCookies()
+
 ### Version 1.1.2 (March 31, 2021)
 
 * Improve resolving relative URLs
